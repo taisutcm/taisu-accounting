@@ -1,0 +1,123 @@
+# GitHub Pages 部署命令
+
+## 前置步骤
+
+### 1. 创建 GitHub 仓库
+
+1. 访问：https://github.com/new
+2. 仓库名称：taisu-accounting
+3. 选择 Public（公开）
+4. 勾选 "Initialize this repository with a README"
+5. 点击 "Create repository"
+
+### 2. 推送代码到 GitHub
+
+在终端执行以下命令（逐步复制粘贴）：
+
+```bash
+# 进入项目目录
+cd ~/Desktop/expense_tracker_app
+
+# 如果之前有远程仓库，先删除
+git remote remove origin
+
+# 添加新的远程仓库（使用您的用户名 taisutcm）
+git remote add origin https://github.com/taisutcm/taisu-accounting.git
+
+# 确认远程仓库
+git remote -v
+
+# 推送代码到 GitHub
+git push -u origin main
+```
+
+### 3. 启用 GitHub Pages
+
+1. 打开仓库：https://github.com/taisutcm/taisu-accounting
+2. 点击 "Settings"（设置）
+3. 在左侧菜单找到 "Pages"
+4. 配置如下：
+   - **Build and deployment** → **Source**：选择 "Deploy from a branch"
+   - **Branch**：选择 `main`
+   - **Folder**：选择 `/ (root)`
+5. 点击 "Save"
+
+5. 等待 1-5 分钟，GitHub 会自动部署
+
+6. 部署完成后，访问地址将显示在 Settings → Pages 页面顶部
+
+### 4. 访问您的应用
+
+地址将是：
+```
+https://taisutcm.github.io/taisu-accounting/
+```
+
+## 如果遇到问题
+
+### 问题 1：认证错误
+**解决方案**：
+```bash
+# 使用个人访问令牌（Personal Access Token）
+# 1. GitHub 设置 → Developer settings → Personal access tokens → Tokens (classic)
+# 2. 生成新令牌，选择 repo 权限
+# 3. 使用令牌替代密码
+
+git remote set-url origin https://YOUR_TOKEN@github.com/taisutcm/taisu-accounting.git
+```
+
+### 问题 2：远程仓库已存在
+**解决方案**：
+```bash
+cd ~/Desktop/expense_tracker_app
+
+# 删除现有远程仓库
+git remote remove origin
+
+# 重新添加
+git remote add origin https://github.com/taisutcm/taisu-accounting.git
+
+# 推送
+git push -u origin main
+```
+
+### 问题 3：分支名称问题
+**解决方案**：
+```bash
+# 确保使用 main 分支
+git branch -M main
+
+# 推送
+git push -u origin main
+```
+
+## 更新应用
+
+当您修改代码后，执行：
+```bash
+cd ~/Desktop/expense_tracker_app
+git add .
+git commit -m "更新描述"
+git push
+```
+
+GitHub 会自动重新部署。
+
+## 注意事项
+
+1. **确保仓库是 Public（公开）**，否则 GitHub Pages 无法访问
+2. **文件夹结构**：确保 index.html 在根目录或正确配置
+3. **等待时间**：首次部署可能需要 5-10 分钟
+4. **清除缓存**：如果更新后看不到变化，清除浏览器缓存
+
+## 需要帮助？
+
+如果遇到任何问题，请告诉我：
+1. 具体错误信息
+2. 执行到哪一步
+3. 终端输出的内容
+
+我会帮您解决！
+
+
+YOUR_TOKEN
