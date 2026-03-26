@@ -4,388 +4,102 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>太素记账</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-size: 200% 200%;
-            animation: gradientAnimation 15s ease infinite;
-        }
-
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .balance {
-            font-size: 36px;
-            font-weight: bold;
-            margin: 10px 0;
-        }
-
-        .balance-label {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-
-        .tabs {
-            display: flex;
-            background: #f0f0f0;
-            padding: 10px;
-            gap: 10px;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            background: white;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s;
-        }
-
-        .tab.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .content {
-            padding: 20px;
-        }
-
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .file-upload {
-            border: 2px dashed #e0e0e0;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .file-upload:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .file-upload.dragover {
-            border-color: #667eea;
-            background: #f0f0ff;
-        }
-
-        .file-upload p {
-            color: #666;
-            margin: 10px 0;
-        }
-
-        .file-upload input[type="file"] {
-            display: none;
-        }
-
-        .preview-images {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .preview-image {
-            width: 80px;
-            height: 80px;
-            border-radius: 8px;
-            object-fit: cover;
-            border: 2px solid #e0e0e0;
-        }
-
-        .transaction-list {
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .transaction-item {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .transaction-item.expense {
-            border-left: 4px solid #e74c3c;
-        }
-
-        .transaction-item.income {
-            border-left: 4px solid #2ecc71;
-        }
-
-        .transaction-info {
-            flex: 1;
-        }
-
-        .transaction-amount {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .transaction-amount.expense {
-            color: #e74c3c;
-        }
-
-        .transaction-amount.income {
-            color: #2ecc71;
-        }
-
-        .transaction-category {
-            font-size: 14px;
-            color: #666;
-        }
-
-        .transaction-date {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-        }
-
-        .transaction-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .btn-small {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
-        .btn-delete {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .btn-view-pdf {
-            background: #667eea;
-            color: white;
-        }
-
-        .export-section {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-        }
-
-        .export-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
-        }
-
-        .empty-state svg {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-        }
-
-        .success-message {
-            background: #2ecc71;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .error-message {
-            background: #e74c3c;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .category-list {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 15px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .category-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 8px;
-        }
-
-        .category-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .category-name {
-            font-weight: 600;
-            color: #333;
-        }
-
-        .category-delete {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 5px 12px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.3s;
-        }
-
-        .category-delete:hover {
-            background: #c0392b;
-        }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; }
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 20px; }
+        .online-btn { background: rgba(255,255,255,0.2); border: none; color: white; padding: 5px 12px; border-radius: 15px; font-size: 12px; cursor: pointer; }
+        .company-name { font-size: 14px; opacity: 0.9; margin-top: 5px; }
+        .balance { font-size: 28px; font-weight: bold; margin: 10px 0; }
+        .balance-label { font-size: 14px; opacity: 0.8; }
+        .tabs { display: flex; background: #f0f0f0; padding: 10px; gap: 10px; }
+        .tab { flex: 1; padding: 10px; border: none; background: white; border-radius: 10px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        .tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .content { padding: 20px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        input, select, textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 16px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; }
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-small { padding: 6px 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .file-upload { border: 2px dashed #e0e0e0; border-radius: 10px; padding: 20px; text-align: center; cursor: pointer; }
+        .file-upload:hover { border-color: #667eea; background: #f8f9ff; }
+        .file-upload input[type="file"] { display: none; }
+        .preview-images { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .preview-image { width: 60px; height: 60px; border-radius: 8px; object-fit: cover; }
+        .transaction-list { max-height: 350px; overflow-y: auto; }
+        .transaction-item { background: #f9f9f9; border-radius: 10px; padding: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .transaction-item.expense { border-left: 4px solid #e74c3c; }
+        .transaction-item.income { border-left: 4px solid #2ecc71; }
+        .transaction-amount { font-size: 16px; font-weight: bold; }
+        .transaction-amount.expense { color: #e74c3c; }
+        .transaction-amount.income { color: #2ecc71; }
+        .transaction-category { font-size: 14px; color: #666; }
+        .transaction-date { font-size: 12px; color: #999; margin-top: 3px; }
+        .btn-delete { background: #e74c3c; color: white; }
+        .btn-view-pdf { background: #667eea; color: white; margin-right: 5px; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: #f9f9f9; padding: 12px; border-radius: 10px; text-align: center; }
+        .stat-value { font-size: 18px; font-weight: bold; color: #667eea; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 3px; }
+        .empty-state { text-align: center; padding: 30px; color: #999; }
+        .success-message, .error-message { padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; }
+        .success-message { background: #2ecc71; color: white; }
+        .error-message { background: #e74c3c; color: white; }
+        .category-list { background: #f9f9f9; border-radius: 10px; padding: 12px; max-height: 150px; overflow-y: auto; }
+        .category-item { padding: 8px; background: white; border-radius: 8px; margin-bottom: 5px; }
+        
+        /* 聊天弹窗 */
+        .chat-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; }
+        .chat-overlay.active { display: block; }
+        .chat-popup { position: fixed; bottom: 0; left: 0; right: 0; background: white; border-radius: 20px 20px 0 0; max-height: 80vh; padding: 20px; z-index: 101; }
+        .chat-popup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .chat-popup-header h3 { color: #333; }
+        .close-btn { background: #eee; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 18px; }
+        .chat-messages { height: 180px; overflow-y: auto; background: #f9f9f9; border-radius: 10px; padding: 10px; margin-bottom: 10px; }
+        .chat-message { margin-bottom: 10px; padding: 8px 12px; border-radius: 10px; max-width: 80%; }
+        .chat-message.self { background: #667eea; color: white; margin-left: auto; }
+        .chat-message.other { background: white; border: 1px solid #e0e0e0; }
+        .chat-message .sender { font-size: 11px; opacity: 0.7; margin-bottom: 2px; }
+        .chat-message .time { font-size: 10px; opacity: 0.5; text-align: right; margin-top: 2px; }
+        .chat-input { display: flex; gap: 10px; }
+        .chat-input input { flex: 1; margin: 0; }
+        .chat-tip { font-size: 12px; color: #999; text-align: center; margin-top: 5px; }
+        
+        /* 成员列表 */
+        .member-list { max-height: 200px; overflow-y: auto; margin-bottom: 10px; }
+        .member-item { padding: 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 5px; cursor: pointer; }
+        .member-item:hover { background: #f0f0ff; }
+        .member-item.active { background: #e8e8ff; border: 2px solid #667eea; }
+        
+        /* 设置 */
+        .user-info { background: #f9f9f9; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .company-section { margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>太素记账</h1>
-            <p class="balance-label">总余额</p>
+            <div class="header-top">
+                <h1>太素记账</h1>
+                <button class="online-btn" id="onlineBtn" onclick="toggleChat()" style="display:none;">在线者</button>
+            </div>
+            <p class="company-name" id="currentCompany">本地模式</p>
             <div class="balance">¥<span id="totalBalance">0.00</span></div>
+            <p class="balance-label">总余额</p>
         </div>
 
         <div class="tabs">
@@ -399,520 +113,649 @@
             <div id="successMessage" class="success-message"></div>
             <div id="errorMessage" class="error-message"></div>
 
-            <!-- 记录列表页面 -->
             <div id="listPage" class="page active">
                 <div class="stats">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalIncome">¥0.00</div>
-                        <div class="stat-label">总收入</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalExpense">¥0.00</div>
-                        <div class="stat-label">总支出</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="transactionCount">0</div>
-                        <div class="stat-label">记录数</div>
-                    </div>
+                    <div class="stat-card"><div class="stat-value" id="totalIncome">¥0</div><div class="stat-label">收入</div></div>
+                    <div class="stat-card"><div class="stat-value" id="totalExpense">¥0</div><div class="stat-label">支出</div></div>
+                    <div class="stat-card"><div class="stat-value" id="transactionCount">0</div><div class="stat-label">记录数</div></div>
                 </div>
-
                 <div id="transactionList" class="transaction-list"></div>
             </div>
 
-            <!-- 添加记录页面 -->
             <div id="addPage" class="page">
                 <form id="transactionForm">
+                    <div class="form-group"><label>类型</label><select id="transactionType" required onchange="updateCategories()"><option value="expense">支出</option><option value="income">收入</option></select></div>
+                    <div class="form-group"><label>金额</label><input type="number" id="amount" step="0.01" min="0" required placeholder="0.00"></div>
+                    <div class="form-group"><label>分类</label><select id="category" required></select></div>
+                    <div class="form-group"><label>日期</label><input type="date" id="date" required></div>
+                    <div class="form-group"><label>备注</label><textarea id="note" placeholder="添加备注..."></textarea></div>
                     <div class="form-group">
-                        <label>类型</label>
-                        <select id="transactionType" required onchange="updateCategories()">
-                            <option value="expense">支出</option>
-                            <option value="income">收入</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>金额</label>
-                        <input type="number" id="amount" step="0.01" min="0" required placeholder="0.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>分类</label>
-                        <select id="category" required></select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>日期</label>
-                        <input type="date" id="date" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>备注</label>
-                        <textarea id="note" placeholder="添加备注..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>上传小票图片</label>
-                        <div class="file-upload" onclick="document.getElementById('receiptImages').click()">
-                            <p>点击选择图片或拖拽到此处</p>
-                            <input type="file" id="receiptImages" accept="image/*" multiple onchange="previewImages(this.files)">
-                        </div>
+                        <label>上传小票</label>
+                        <div class="file-upload" onclick="document.getElementById('receiptImages').click()"><p>点击选择图片</p><input type="file" id="receiptImages" accept="image/*" multiple onchange="previewImages(this.files)"></div>
                         <div class="preview-images" id="previewImages"></div>
                     </div>
-
                     <button type="submit" class="btn btn-primary">保存记录</button>
                 </form>
             </div>
 
-            <!-- 导出页面 -->
             <div id="exportPage" class="page">
-                <div class="export-section">
-                    <h3>导出数据</h3>
-                    <p style="margin: 10px 0; color: #666;">选择导出格式和时间范围</p>
-
-                    <div class="form-group">
-                        <label>时间范围</label>
-                        <select id="exportRange">
-                            <option value="month">本月</option>
-                            <option value="quarter">本季度</option>
-                            <option value="year">今年</option>
-                            <option value="all">全部</option>
-                        </select>
-                    </div>
-
-                    <div class="export-buttons">
-                        <button class="btn btn-primary" onclick="exportToExcel()">导出 Excel</button>
-                        <button class="btn btn-secondary" onclick="exportToPDF()">导出 PDF</button>
-                    </div>
+                <h3 style="margin-bottom: 15px;">导出数据</h3>
+                <div class="form-group">
+                    <label>导出范围</label>
+                    <select id="exportRange">
+                        <option value="all">全部记录</option>
+                        <option value="month">本月</option>
+                        <option value="year">今年</option>
+                    </select>
                 </div>
+                <button type="button" class="btn btn-primary" onclick="exportToExcel()">导出Excel</button>
             </div>
 
-            <!-- 设置页面 -->
             <div id="settingsPage" class="page">
-                <h3 style="margin-bottom: 20px;">分类管理</h3>
+                <h3 style="margin-bottom: 15px;">账户</h3>
+                <div class="user-info"><div id="userStatus">未登录</div><div id="statusText">本地模式</div></div>
 
-                <div class="form-group">
-                    <label>添加自定义分类</label>
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                        <select id="newCategoryType" style="flex: 1;">
-                            <option value="expense">支出</option>
-                            <option value="income">收入</option>
-                        </select>
-                        <input type="text" id="newCategoryName" placeholder="输入分类名称" style="flex: 2;">
-                        <button class="btn btn-primary" style="width: auto; padding: 12px 20px;" onclick="addCustomCategory()">添加</button>
+                <div id="authSection">
+                    <div class="form-group"><input type="text" id="username" placeholder="输入用户名"></div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn btn-primary" style="flex: 1;" onclick="doRegister()">注册</button>
+                        <button type="button" class="btn btn-secondary" style="flex: 1;" onclick="doLogin()">登录</button>
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label>支出分类</label>
-                    <div id="expenseCategories" class="category-list"></div>
+                <div class="company-section" id="companySection" style="display: none;">
+                    <h4 style="margin-bottom: 10px;">选择公司/项目</h4>
+                    <div class="form-group">
+                        <label>加入已有公司</label>
+                        <select id="companySelect" onchange="joinCompany()"><option value="">选择公司...</option></select>
+                    </div>
+                    <p style="text-align: center; color: #999; margin: 10px 0;">或</p>
+                    <div class="form-group">
+                        <label>创建新公司</label>
+                        <input type="text" id="newCompanyName" placeholder="输入公司名称">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="doCreateCompany()">创建公司</button>
+                    <div id="companyList" style="margin-top: 15px;"></div>
                 </div>
 
-                <div class="form-group">
-                    <label>收入分类</label>
-                    <div id="incomeCategories" class="category-list"></div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;">
+                    <h4 style="margin-bottom: 10px;">分类管理</h4>
+                    <div class="form-group">
+                        <div style="display: flex; gap: 10px;">
+                            <select id="newCategoryType" style="flex: 1;"><option value="expense">支出</option><option value="income">收入</option></select>
+                            <input type="text" id="newCategoryName" placeholder="分类名" style="flex: 2;">
+                            <button type="button" class="btn btn-primary" style="width: auto;" onclick="addCustomCategory()">添加</button>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>支出分类</label><div id="expenseCategories" class="category-list"></div></div>
+                    <div class="form-group"><label>收入分类</label><div id="incomeCategories" class="category-list"></div></div>
                 </div>
 
-                <button class="btn btn-secondary" onclick="resetCategories()" style="margin-top: 20px;">恢复默认分类</button>
+                <button type="button" class="btn btn-secondary" id="logoutBtn" onclick="doLogout()" style="display: none; margin-top: 15px;">退出登录</button>
             </div>
         </div>
     </div>
 
-    <script>
-        // 数据存储
-        let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+    <!-- 聊天弹窗 -->
+    <div class="chat-overlay" id="chatOverlay" onclick="closeChat(event)">
+        <div class="chat-popup" onclick="event.stopPropagation()">
+            <div class="chat-popup-header">
+                <h3 id="chatTitle">在线聊天</h3>
+                <button type="button" class="close-btn" onclick="toggleChat()">&times;</button>
+            </div>
+            
+            <!-- 成员选择 -->
+            <div id="memberSelect" class="member-list"></div>
+            
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" id="chatInput" placeholder="输入消息..." onkeypress="handleChatKeypress(event)">
+                <button type="button" class="btn btn-primary" style="width: auto;" onclick="sendMessage()">发送</button>
+            </div>
+            <p class="chat-tip">聊天记录5分钟后自动删除</p>
+        </div>
+    </div>
 
-        // 默认分类配置
-        const defaultCategories = {
-            expense: ['餐饮', '交通', '购物', '娱乐', '医疗', '教育', '住房', '其他'],
-            income: ['工资', '奖金', '投资', '兼职', '其他']
+    <script>
+        const SUPABASE_URL = 'https://pexhzevedsmkhuaxxwif.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBleGh6ZXZlZHNta2h1YXh4d2lmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1NDk5NjUsImV4cCI6MjA5MDEyNTk2NX0.spTNtJLnpEmZTJmnCUKbCn8WCMNkvRG2HOsMxRF-flI';
+
+        let sb;
+        try { sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) { console.log('init failed'); }
+
+        let currentUser = null;
+        let currentCompany = null;
+        let isOnline = false;
+        let transactions = [];
+        let messages = [];
+        let companyMembers = [];
+        let chatTarget = null; // 私聊目标
+        let categories = { expense: ['餐饮', '交通', '购物', '娱乐', '医疗', '教育', '住房', '其他'], income: ['工资', '奖金', '投资', '兼职', '其他'] };
+        let receiptImagesData = [];
+
+        window.onload = function() {
+            loadLocalData();
+            setDefaultDate();
+            updateCategories();
+            loadCategoryLists();
+            loadTransactions();
+            updateAuthUI();
         };
 
-        // 分类配置（从本地存储加载或使用默认）
-        let categories = JSON.parse(localStorage.getItem('categories') || JSON.stringify(defaultCategories));
+        function loadLocalData() {
+            const saved = localStorage.getItem('taisu_categories');
+            if (saved) categories = JSON.parse(saved);
+        }
 
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            updateCategories();
-            setDefaultDate();
-            loadTransactions();
-            loadCategoryLists();
-        });
+        function saveLocalTransactions() { localStorage.setItem('taisu_transactions', JSON.stringify(transactions)); }
+        function loadLocalTransactions() { const saved = localStorage.getItem('taisu_transactions'); if (saved) transactions = JSON.parse(saved); }
 
-        // 显示页面
-        function showPage(page) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        function updateAuthUI() {
+            const savedUser = localStorage.getItem('taisu_user');
+            const savedCompany = localStorage.getItem('taisu_company');
+            const onlineBtn = document.getElementById('onlineBtn');
 
-            document.getElementById(page + 'Page').classList.add('active');
-            event.target.classList.add('active');
-
-            if (page === 'list') {
-                loadTransactions();
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                if (savedCompany) {
+                    currentCompany = JSON.parse(savedCompany);
+                    isOnline = true;
+                    document.getElementById('currentCompany').textContent = currentCompany.name;
+                    document.getElementById('userStatus').textContent = currentUser.username;
+                    document.getElementById('statusText').innerHTML = '<span style="color:#2ecc71">联网模式</span>';
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('companySection').style.display = 'block';
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    onlineBtn.style.display = 'block';
+                    loadAllCompanies();
+                    loadCompanyMembers();
+                } else {
+                    document.getElementById('userStatus').textContent = currentUser.username;
+                    document.getElementById('statusText').textContent = '请选择公司';
+                    document.getElementById('authSection').style.display = 'none';
+                    document.getElementById('companySection').style.display = 'block';
+                    document.getElementById('logoutBtn').style.display = 'block';
+                    onlineBtn.style.display = 'none';
+                    loadAllCompanies();
+                }
+            } else {
+                isOnline = false;
+                document.getElementById('currentCompany').textContent = '本地模式';
+                document.getElementById('userStatus').textContent = '未登录';
+                document.getElementById('statusText').textContent = '本地模式';
+                document.getElementById('authSection').style.display = 'block';
+                document.getElementById('companySection').style.display = 'none';
+                document.getElementById('logoutBtn').style.display = 'none';
+                onlineBtn.style.display = 'none';
             }
         }
 
-        // 更新分类选项
-        function updateCategories() {
-            const type = document.getElementById('transactionType').value;
-            const categorySelect = document.getElementById('category');
-            categorySelect.innerHTML = '';
+        // 加载所有公司
+        async function loadAllCompanies() {
+            const { data } = await sb.from('companies').select('*').order('created_at', { ascending: false });
+            const select = document.getElementById('companySelect');
+            select.innerHTML = '<option value="">选择公司...</option>';
+            if (data) {
+                data.forEach(function(c) {
+                    const isCurrent = currentCompany && currentCompany.id === c.id;
+                    if (!isCurrent) {
+                        select.innerHTML += '<option value="' + c.id + '">' + c.name + '</option>';
+                    }
+                });
+            }
+        }
 
-            categories[type].forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                categorySelect.appendChild(option);
+        // 加入公司
+        async function joinCompany() {
+            const companyId = document.getElementById('companySelect').value;
+            if (!companyId) return;
+            
+            const { data: company } = await sb.from('companies').select('*').eq('id', companyId).single();
+            if (!company) { showError('公司不存在'); return; }
+            
+            // 检查是否已是成员
+            const { data: existing } = await sb.from('company_members').select('*').eq('company_id', companyId).eq('user_id', currentUser.id).single();
+            if (existing) {
+                selectCompany(company);
+                return;
+            }
+            
+            // 加入公司
+            await sb.from('company_members').insert([{ company_id: companyId, user_id: currentUser.id }]);
+            selectCompany(company);
+        }
+
+        // 注册
+        async function doRegister() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) { showError('请输入用户名'); return; }
+            try {
+                const { data, error } = await sb.from('profiles').insert([{ username }]).select().single();
+                if (error) { if (error.code === '23505') showError('用户名已存在'); else showError(error.message); return; }
+                currentUser = data;
+                localStorage.setItem('taisu_user', JSON.stringify(data));
+                showSuccess('注册成功！请选择或创建公司');
+                updateAuthUI();
+                loadAllCompanies();
+            } catch (e) { showError('注册失败'); }
+        }
+
+        // 登录
+        async function doLogin() {
+            const username = document.getElementById('username').value.trim();
+            if (!username) { showError('请输入用户名'); return; }
+            try {
+                const { data, error } = await sb.from('profiles').select('*').eq('username', username).single();
+                if (error || !data) { showError('用户不存在'); return; }
+                currentUser = data;
+                localStorage.setItem('taisu_user', JSON.stringify(data));
+                showSuccess('登录成功！');
+                updateAuthUI();
+                const savedCompany = localStorage.getItem('taisu_company');
+                if (savedCompany) currentCompany = JSON.parse(savedCompany);
+                loadAllCompanies();
+            } catch (e) { showError('登录失败'); }
+        }
+
+        // 加载公司成员
+        async function loadCompanyMembers() {
+            if (!currentCompany) return;
+            try {
+                // 查询在线用户（最近30秒内活跃）
+                const onlineUsers = await getOnlineUsers();
+                
+                if (!onlineUsers || onlineUsers.length === 0) {
+                    companyMembers = [];
+                    renderMemberSelect();
+                    return;
+                }
+                
+                // 合并数据，只保留在线用户
+                companyMembers = onlineUsers.map(u => ({
+                    user_id: u.user_id,
+                    profiles: u.profiles
+                }));
+                
+                renderMemberSelect();
+            } catch(e) { console.error(e); companyMembers = []; renderMemberSelect(); }
+        }
+
+        // 渲染成员选择
+        function renderMemberSelect() {
+            const container = document.getElementById('memberSelect');
+            if (!companyMembers || companyMembers.length === 0) {
+                container.innerHTML = '<div class="empty-state">暂无其他成员</div>';
+                chatTarget = null;
+                document.getElementById('chatTitle').textContent = '在线聊天 (全员)';
+                return;
+            }
+            
+            if (companyMembers.length <= 1) {
+                container.innerHTML = '<div class="empty-state">你是唯一的成员</div>';
+                chatTarget = null;
+                document.getElementById('chatTitle').textContent = '在线聊天 (全员)';
+                return;
+            }
+            
+            let html = '<div style="font-weight:600;margin-bottom:8px;">选择聊天对象:</div>';
+            html += '<div class="member-item' + (!chatTarget ? ' active' : '') + '" onclick="setChatTarget(null, null)"><div>全员聊天</div></div>';
+            
+            companyMembers.forEach(function(m) {
+                const profile = m.profiles;
+                if (profile && profile.id !== currentUser.id) {
+                    const isActive = chatTarget === profile.id;
+                    html += '<div class="member-item' + (isActive ? ' active' : '') + '" onclick="setChatTarget(\'' + profile.id + '\', \'' + profile.username + '\')"><div class="member-name">' + profile.username + '</div></div>';
+                }
             });
+            container.innerHTML = html;
         }
 
-        // 设置默认日期
-        function setDefaultDate() {
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('date').value = today;
+        // 设置聊天目标
+        function setChatTarget(userId, userName) {
+            chatTarget = userId;
+            document.getElementById('chatTitle').textContent = userName ? '与 ' + userName + ' 私聊' : '在线聊天 (全员)';
+            renderMemberSelect();
+            loadMessages();
         }
 
-        // 图片预览
+        // 创建公司
+        async function doCreateCompany() {
+            const name = document.getElementById('newCompanyName').value.trim();
+            if (!name) { showError('请输入公司名称'); return; }
+            try {
+                const { data: company, error } = await sb.from('companies').insert([{ name, created_by: currentUser.id }]).select().single();
+                if (error) { showError(error.message); return; }
+                await sb.from('company_members').insert([{ company_id: company.id, user_id: currentUser.id }]);
+                selectCompany(company);
+            } catch (e) { showError('创建失败'); }
+        }
+
+        let messageChannel = null;
+        let presenceChannel = null;
+        let presenceTimer = null;
+        
+        // 设置在线状态
+        async function setOnline() {
+            if (!currentUser || !currentCompany) return;
+            await sb.from('user_presence').upsert({
+                user_id: currentUser.id,
+                company_id: currentCompany.id,
+                last_seen: new Date().toISOString()
+            }, { onConflict: 'user_id,company_id' });
+        }
+        
+        // 获取在线用户
+        async function getOnlineUsers() {
+            if (!currentCompany) return [];
+            const thirtySecAgo = new Date(Date.now() - 30000).toISOString();
+            const { data } = await sb.from('user_presence')
+                .select('user_id, profiles(id, username)')
+                .eq('company_id', currentCompany.id)
+                .gte('last_seen', thirtySecAgo);
+            return data || [];
+        }
+        
+        // 监听其他用户上线
+        function subscribeToPresence() {
+            if (presenceChannel) presenceChannel.unsubscribe();
+            presenceChannel = sb.channel('presence:' + currentCompany.id)
+                .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'user_presence', filter: 'company_id=eq.' + currentCompany.id },
+                    function(payload) {
+                        loadCompanyMembers();
+                    }
+                )
+                .subscribe();
+        }
+        
+        function selectCompany(company) {
+            currentCompany = company;
+            localStorage.setItem('taisu_company', JSON.stringify(company));
+            document.getElementById('currentCompany').textContent = company.name;
+            showSuccess('已切换到: ' + company.name);
+            updateAuthUI();
+            loadTransactions();
+            loadCompanyMembers();
+            
+            // 设置在线状态
+            setOnline();
+            
+            // 定期更新在线状态（每10秒）
+            if (presenceTimer) clearInterval(presenceTimer);
+            presenceTimer = setInterval(function() { setOnline(); loadCompanyMembers(); }, 10000);
+            
+            // 监听其他用户上线
+            subscribeToPresence();
+            
+            // 订阅实时消息
+            if (messageChannel) { messageChannel.unsubscribe(); }
+            messageChannel = sb.channel('chat:' + company.id)
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'company_id=eq.' + company.id }, 
+                    function(payload) {
+                        var overlay = document.getElementById('chatOverlay');
+                        if (overlay && overlay.classList.contains('active')) {
+                            loadMessages();
+                        }
+                    }
+                )
+                .subscribe();
+        }
+
+        function doLogout() {
+            // 移除在线状态
+            if (currentUser && currentCompany) {
+                sb.from('user_presence').delete().eq('user_id', currentUser.id).eq('company_id', currentCompany.id);
+            }
+            if (presenceTimer) clearInterval(presenceTimer);
+            if (messageChannel) messageChannel.unsubscribe();
+            if (presenceChannel) presenceChannel.unsubscribe();
+            
+            localStorage.removeItem('taisu_user');
+            localStorage.removeItem('taisu_company');
+            currentUser = null; currentCompany = null; isOnline = false; transactions = [];
+            loadLocalTransactions(); renderTransactions(); updateAuthUI(); showSuccess('已退出');
+        }
+        
+        // 页面离开时移除在线状态
+        window.addEventListener('beforeunload', function() {
+            if (currentUser && currentCompany) {
+                sb.from('user_presence').delete().eq('user_id', currentUser.id).eq('company_id', currentCompany.id);
+            }
+        });
+
+        function showPage(page) {
+            document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            var pageMap = { 'list': 0, 'add': 1, 'export': 2, 'settings': 3 };
+            var pages = ['listPage', 'addPage', 'exportPage', 'settingsPage'];
+            var tabs = document.querySelectorAll('.tab');
+            document.getElementById(pages[pageMap[page]]).classList.add('active');
+            tabs[pageMap[page]].classList.add('active');
+            if (page === 'list') loadTransactions();
+        }
+
+        function updateCategories() {
+            var type = document.getElementById('transactionType').value;
+            var sel = document.getElementById('category');
+            sel.innerHTML = '';
+            categories[type].forEach(function(cat) { var opt = document.createElement('option'); opt.value = cat; opt.textContent = cat; sel.appendChild(opt); });
+        }
+
+        function loadCategoryLists() {
+            document.getElementById('expenseCategories').innerHTML = categories.expense.map(function(c) { return '<div class="category-item">' + c + '</div>'; }).join('');
+            document.getElementById('incomeCategories').innerHTML = categories.income.map(function(c) { return '<div class="category-item">' + c + '</div>'; }).join('');
+        }
+
+        function addCustomCategory() {
+            var type = document.getElementById('newCategoryType').value;
+            var name = document.getElementById('newCategoryName').value.trim();
+            if (!name || categories[type].includes(name)) { showError('分类已存在'); return; }
+            categories[type].push(name);
+            localStorage.setItem('taisu_categories', JSON.stringify(categories));
+            document.getElementById('newCategoryName').value = '';
+            updateCategories(); loadCategoryLists(); showSuccess('添加成功');
+        }
+
         function previewImages(files) {
-            const previewContainer = document.getElementById('previewImages');
-            previewContainer.innerHTML = '';
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
+            var container = document.getElementById('previewImages');
+            container.innerHTML = ''; receiptImagesData = [];
+            Array.from(files).forEach(function(file) {
+                var reader = new FileReader();
                 reader.onload = function(e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'preview-image';
-                    previewContainer.appendChild(img);
+                    receiptImagesData.push(e.target.result);
+                    var img = document.createElement('img');
+                    img.src = e.target.result; img.className = 'preview-image';
+                    container.appendChild(img);
                 };
                 reader.readAsDataURL(file);
             });
         }
 
-        // 保存记录
-        document.getElementById('transactionForm').addEventListener('submit', function(e) {
-            e.preventDefault();
+        function setDefaultDate() { document.getElementById('date').value = new Date().toISOString().split('T')[0]; }
 
-            const transaction = {
-                id: Date.now(),
+        document.getElementById('transactionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            var transaction = {
                 type: document.getElementById('transactionType').value,
                 amount: parseFloat(document.getElementById('amount').value),
                 category: document.getElementById('category').value,
                 date: document.getElementById('date').value,
                 note: document.getElementById('note').value,
-                createdAt: new Date().toISOString()
+                receipt_images: receiptImagesData,
+                created_at: new Date().toISOString()
             };
 
-            transactions.unshift(transaction);
-            saveTransactions();
-            showMessage('记录添加成功！', 'success');
-
-            // 重置表单
-            this.reset();
-            setDefaultDate();
-            updateCategories();
-            document.getElementById('previewImages').innerHTML = '';
+            if (isOnline && currentCompany) {
+                var { error } = await sb.from('transactions').insert([{ company_id: currentCompany.id, user_id: currentUser.id, type: transaction.type, amount: transaction.amount, category: transaction.category, date: transaction.date, note: transaction.note, receipt_images: transaction.receipt_images }]);
+                if (error) { showError(error.message); return; }
+            } else {
+                transaction.id = Date.now(); transactions.unshift(transaction); saveLocalTransactions();
+            }
+            showSuccess('保存成功');
+            document.getElementById('transactionForm').reset(); setDefaultDate(); updateCategories();
+            document.getElementById('previewImages').innerHTML = ''; receiptImagesData = [];
+            showPage('list');
         });
 
-        // 保存到本地存储
-        function saveTransactions() {
-            localStorage.setItem('transactions', JSON.stringify(transactions));
+        async function loadTransactions() {
+            if (isOnline && currentCompany) {
+                var { data } = await sb.from('transactions').select('*').eq('company_id', currentCompany.id).order('created_at', { ascending: false });
+                transactions = data || [];
+            } else { loadLocalTransactions(); }
+            renderTransactions();
         }
 
-        // 加载记录
-        function loadTransactions() {
-            const listContainer = document.getElementById('transactionList');
-            listContainer.innerHTML = '';
-
-            if (transactions.length === 0) {
-                listContainer.innerHTML = `
-                    <div class="empty-state">
-                        <p>暂无记录</p>
-                        <p>点击"添加"按钮开始太素记账</p>
-                    </div>
-                `;
-            } else {
-                transactions.forEach(transaction => {
-                    const item = createTransactionItem(transaction);
-                    listContainer.appendChild(item);
-                });
-            }
-
+        function renderTransactions() {
+            var container = document.getElementById('transactionList');
+            if (transactions.length === 0) { container.innerHTML = '<div class="empty-state"><p>暂无记录</p></div>'; updateStats(); return; }
+            container.innerHTML = '';
+            transactions.forEach(function(t) {
+                var hasReceipt = t.receipt_images && t.receipt_images.length > 0;
+                var viewBtn = hasReceipt ? '<button type="button" class="btn-small btn-view-pdf" onclick="viewReceipt(\'' + t.id + '\')">小票</button>' : '';
+                var item = document.createElement('div');
+                item.className = 'transaction-item ' + t.type;
+                item.innerHTML = '<div class="transaction-info"><div class="transaction-amount ' + t.type + '">' + (t.type === 'expense' ? '-' : '+') + '¥' + parseFloat(t.amount).toFixed(2) + '</div><div class="transaction-category">' + t.category + '</div><div class="transaction-date">' + t.date + '</div></div><div class="transaction-actions">' + viewBtn + '<button type="button" class="btn-small btn-delete" onclick="deleteTransaction(\'' + t.id + '\')">删除</button></div>';
+                container.appendChild(item);
+            });
             updateStats();
         }
 
-        // 创建记录项
-        function createTransactionItem(transaction) {
-            const div = document.createElement('div');
-            div.className = `transaction-item ${transaction.type}`;
-
-            div.innerHTML = `
-                <div class="transaction-info">
-                    <div class="transaction-amount ${transaction.type}">
-                        ${transaction.type === 'expense' ? '-' : '+'}¥${transaction.amount.toFixed(2)}
-                    </div>
-                    <div class="transaction-category">${transaction.category}</div>
-                    <div class="transaction-date">${formatDate(transaction.date)}</div>
-                    ${transaction.note ? `<div style="font-size: 12px; color: #999; margin-top: 3px;">${transaction.note}</div>` : ''}
-                </div>
-                <div class="transaction-actions">
-                    <button class="btn-small btn-delete" onclick="deleteTransaction(${transaction.id})">删除</button>
-                </div>
-            `;
-
-            return div;
-        }
-
-        // 删除记录
-        function deleteTransaction(id) {
-            if (confirm('确定要删除这条记录吗？')) {
-                transactions = transactions.filter(t => t.id !== id);
-                saveTransactions();
-                loadTransactions();
-                showMessage('记录已删除', 'success');
-            }
-        }
-
-        // 更新统计
         function updateStats() {
-            const totalIncome = transactions
-                .filter(t => t.type === 'income')
-                .reduce((sum, t) => sum + t.amount, 0);
-
-            const totalExpense = transactions
-                .filter(t => t.type === 'expense')
-                .reduce((sum, t) => sum + t.amount, 0);
-
-            document.getElementById('totalIncome').textContent = `¥${totalIncome.toFixed(2)}`;
-            document.getElementById('totalExpense').textContent = `¥${totalExpense.toFixed(2)}`;
-            document.getElementById('totalBalance').textContent = (totalIncome - totalExpense).toFixed(2);
+            var income = transactions.filter(function(t) { return t.type === 'income'; }).reduce(function(s, t) { return s + parseFloat(t.amount); }, 0);
+            var expense = transactions.filter(function(t) { return t.type === 'expense'; }).reduce(function(s, t) { return s + parseFloat(t.amount); }, 0);
+            document.getElementById('totalIncome').textContent = '¥' + income.toFixed(2);
+            document.getElementById('totalExpense').textContent = '¥' + expense.toFixed(2);
+            document.getElementById('totalBalance').textContent = (income - expense).toFixed(2);
             document.getElementById('transactionCount').textContent = transactions.length;
         }
 
-        // 格式化日期
-        function formatDate(dateStr) {
-            const date = new Date(dateStr);
-            return date.toLocaleDateString('zh-CN');
+        async function deleteTransaction(id) {
+            if (!confirm('确定删除?')) return;
+            if (isOnline && currentCompany) { await sb.from('transactions').delete().eq('id', id); }
+            else { transactions = transactions.filter(function(t) { return t.id != id; }); saveLocalTransactions(); }
+            loadTransactions();
         }
 
-        // 显示消息
-        function showMessage(message, type) {
-            const messageEl = type === 'success' ?
-                document.getElementById('successMessage') :
-                document.getElementById('errorMessage');
-
-            messageEl.textContent = message;
-            messageEl.style.display = 'block';
-
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 3000);
+        function viewReceipt(id) {
+            var t = transactions.find(function(x) { return x.id == id; });
+            if (!t || !t.receipt_images || !t.receipt_images.length) return;
+            var content = '<div style="padding:20px;">';
+            t.receipt_images.forEach(function(img) { content += '<img src="' + img + '" style="max-width:100%;border-radius:8px;margin-bottom:15px;">'; });
+            content += '</div>';
+            var w = window.open('', '_blank');
+            w.document.write('<html><head><title>小票</title></head><body>' + content + '</body></html>');
+            w.document.close();
         }
 
-        // 导出 Excel
         function exportToExcel() {
-            const range = document.getElementById('exportRange').value;
-            const filteredTransactions = filterTransactionsByRange(range);
-
-            if (filteredTransactions.length === 0) {
-                showMessage('没有数据可导出', 'error');
-                return;
+            var range = document.getElementById('exportRange').value;
+            var filtered = transactions;
+            if (range === 'month') {
+                var now = new Date(); var startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                filtered = transactions.filter(function(t) { return new Date(t.date) >= startOfMonth; });
+            } else if (range === 'year') {
+                var now = new Date(); var startOfYear = new Date(now.getFullYear(), 0, 1);
+                filtered = transactions.filter(function(t) { return new Date(t.date) >= startOfYear; });
             }
+            if (filtered.length === 0) { showError('没有数据'); return; }
+            var csv = '日期,类型,分类,金额,备注\n';
+            filtered.forEach(function(t) { csv += t.date + ',' + (t.type === 'expense' ? '支出' : '收入') + ',' + t.category + ',' + t.amount + ',"' + (t.note || '') + '"\n'; });
+            var blob = new Blob([csv], { type: 'text/csv' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a'); a.href = url; a.download = '太素记账_' + new Date().toISOString().split('T')[0] + '.csv'; a.click();
+            URL.revokeObjectURL(url); showSuccess('导出成功！');
+        }
 
-            // 创建 CSV 内容
-            let csv = '日期,类型,分类,金额,备注\n';
-            filteredTransactions.forEach(t => {
-                csv += `${t.date},${t.type === 'expense' ? '支出' : '收入'},${t.category},${t.amount},"${t.note || ''}"\n`;
+        // 聊天
+        function toggleChat() {
+            var overlay = document.getElementById('chatOverlay');
+            if (overlay.classList.contains('active')) { overlay.classList.remove('active'); }
+            else { if (!isOnline) { showError('请先登录'); return; } overlay.classList.add('active'); loadCompanyMembers(); loadMessages(); }
+        }
+
+        function closeChat(e) { if (e.target.id === 'chatOverlay') document.getElementById('chatOverlay').classList.remove('active'); }
+
+        async function loadMessages() {
+            if (!isOnline || !currentCompany) return;
+            
+            // 查询最近30分钟的消息（显示用），5分钟后实际删除
+            var thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+            var { data: msgs, error } = await sb.from('messages')
+                .select('*')
+                .eq('company_id', currentCompany.id)
+                .gte('created_at', thirtyMinAgo)
+                .order('created_at', { ascending: true });
+            
+            if (error) { console.error(error); messages = []; }
+            else { messages = msgs || []; }
+            
+            // 获取所有涉及的用户ID
+            var userIds = [];
+            messages.forEach(function(m) {
+                if (userIds.indexOf(m.user_id) === -1) userIds.push(m.user_id);
             });
-
-            // 下载文件
-            downloadFile(csv, `太素记账导出_${new Date().toISOString().split('T')[0]}.csv`, 'text/csv');
-            showMessage('导出成功！', 'success');
-        }
-
-        // 导出 PDF（简化版，实际需要使用 jsPDF 库）
-        function exportToPDF() {
-            const range = document.getElementById('exportRange').value;
-            const filteredTransactions = filterTransactionsByRange(range);
-
-            if (filteredTransactions.length === 0) {
-                showMessage('没有数据可导出', 'error');
-                return;
-            }
-
-            // 创建打印视图
-            let content = '<html><head><title>太素记账记录</title></head><body>';
-            content += '<h1>太素记账记录</h1>';
-            content += '<table border="1" cellpadding="10" style="border-collapse: collapse; width: 100%;">';
-            content += '<tr><th>日期</th><th>类型</th><th>分类</th><th>金额</th><th>备注</th></tr>';
-
-            filteredTransactions.forEach(t => {
-                content += `<tr>
-                    <td>${t.date}</td>
-                    <td>${t.type === 'expense' ? '支出' : '收入'}</td>
-                    <td>${t.category}</td>
-                    <td style="color: ${t.type === 'expense' ? 'red' : 'green'}">¥${t.amount.toFixed(2)}</td>
-                    <td>${t.note || '-'}</td>
-                </tr>`;
-            });
-
-            content += '</table></body></html>';
-
-            // 打开新窗口打印
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(content);
-            printWindow.document.close();
-            printWindow.print();
-
-            showMessage('已打开打印窗口，请选择"保存为 PDF"', 'success');
-        }
-
-        // 按时间范围筛选
-        function filterTransactionsByRange(range) {
-            const now = new Date();
-            const startDate = new Date();
-
-            switch (range) {
-                case 'month':
-                    startDate.setDate(1);
-                    startDate.setHours(0, 0, 0, 0);
-                    break;
-                case 'quarter':
-                    const quarter = Math.floor(now.getMonth() / 3);
-                    startDate.setMonth(quarter * 3);
-                    startDate.setDate(1);
-                    break;
-                case 'year':
-                    startDate.setMonth(0);
-                    startDate.setDate(1);
-                    break;
-                case 'all':
-                default:
-                    return transactions;
-            }
-
-            return transactions.filter(t => new Date(t.date) >= startDate);
-        }
-
-        // 下载文件
-        function downloadFile(content, filename, type) {
-            const blob = new Blob([content], { type: type });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-
-        // === 分类管理功能 ===
-
-        // 加载分类列表
-        function loadCategoryLists() {
-            const expenseContainer = document.getElementById('expenseCategories');
-            const incomeContainer = document.getElementById('incomeCategories');
-
-            expenseContainer.innerHTML = '';
-            incomeContainer.innerHTML = '';
-
-            // 渲染支出分类
-            categories.expense.forEach(cat => {
-                const item = createCategoryItem(cat, 'expense');
-                expenseContainer.appendChild(item);
-            });
-
-            // 渲染收入分类
-            categories.income.forEach(cat => {
-                const item = createCategoryItem(cat, 'income');
-                incomeContainer.appendChild(item);
-            });
-        }
-
-        // 创建分类项
-        function createCategoryItem(name, type) {
-            const div = document.createElement('div');
-            div.className = 'category-item';
-            div.innerHTML = `
-                <span class="category-name">${name}</span>
-                <button class="category-delete"
-                        onclick="deleteCategory('${type}', '${name}')">
-                    删除
-                </button>
-            `;
-            return div;
-        }
-
-        // 添加自定义分类
-        function addCustomCategory() {
-            const type = document.getElementById('newCategoryType').value;
-            const name = document.getElementById('newCategoryName').value.trim();
-
-            if (!name) {
-                showMessage('请输入分类名称', 'error');
-                return;
-            }
-
-            if (categories[type].includes(name)) {
-                showMessage('该分类已存在', 'error');
-                return;
-            }
-
-            categories[type].push(name);
-            saveCategories();
-            loadCategoryLists();
-            updateCategories();
-
-            document.getElementById('newCategoryName').value = '';
-            showMessage('分类添加成功！', 'success');
-        }
-
-        // 删除分类
-        function deleteCategory(type, name) {
-            if (!confirm(`确定要删除"${name}"分类吗？`)) {
-                return;
-            }
-
-            // 检查是否有记录使用此分类
-            const hasRecords = transactions.some(t => t.type === type && t.category === name);
-            if (hasRecords) {
-                if (!confirm(`"${name}"分类下有记录，删除后这些记录将无法显示分类，确定要删除吗？`)) {
-                    return;
+            
+            // 查询用户名
+            var profilesMap = {};
+            if (userIds.length > 0) {
+                var { data: profiles } = await sb.from('profiles').select('id, username').in('id', userIds);
+                if (profiles) {
+                    profiles.forEach(function(p) { profilesMap[p.id] = p.username; });
                 }
             }
-
-            categories[type] = categories[type].filter(c => c !== name);
-            saveCategories();
-            loadCategoryLists();
-            updateCategories();
-            showMessage('分类已删除', 'success');
-        }
-
-        // 恢复默认分类
-        function resetCategories() {
-            if (!confirm('确定要恢复默认分类吗？这将删除所有自定义分类。')) {
-                return;
+            
+            var container = document.getElementById('chatMessages');
+            var filtered = messages;
+            if (chatTarget) {
+                // 私聊：只显示我与chatTarget之间的消息
+                filtered = messages.filter(function(m) { 
+                    // 对方发给我的
+                    if (m.user_id === chatTarget && (m.target_user_id === currentUser.id || !m.target_user_id)) return true;
+                    // 我发给对方的
+                    if (m.user_id === currentUser.id && (m.target_user_id === chatTarget || !m.target_user_id)) return true;
+                    return false;
+                });
+            } else {
+                // 全员聊天：显示没有特定目标的公开消息
+                filtered = messages.filter(function(m) { 
+                    return !m.target_user_id || m.target_user_id === null; 
+                });
             }
-
-            categories = {
-                expense: [...defaultCategories.expense],
-                income: [...defaultCategories.income]
-            };
-            saveCategories();
-            loadCategoryLists();
-            updateCategories();
-            showMessage('已恢复默认分类', 'success');
-        }
-
-        // 保存分类到本地存储
-        function saveCategories() {
-            localStorage.setItem('categories', JSON.stringify(categories));
-        }
-
-        // 按回车键添加分类
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && e.target.id === 'newCategoryName') {
-                addCustomCategory();
+            
+            if (!filtered || filtered.length === 0) { 
+                container.innerHTML = '<div class="empty-state"><p>暂无消息<br><small>5分钟后自动消失</small></p></div>'; 
+                return; 
             }
-        });
+            container.innerHTML = '';
+            filtered.forEach(function(m) {
+                var isSelf = m.user_id === currentUser.id;
+                var time = new Date(m.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                var sender = isSelf ? '我' : (profilesMap[m.user_id] || '未知');
+                container.innerHTML += '<div class="chat-message ' + (isSelf ? 'self' : 'other') + '"><div class="sender">' + sender + '</div><div>' + m.content + '</div><div class="time">' + time + '</div></div>';
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendMessage() {
+            var input = document.getElementById('chatInput');
+            var content = input.value.trim();
+            if (!content || !isOnline || !currentCompany) { showError('请先登录'); return; }
+            await sb.from('messages').insert([{ company_id: currentCompany.id, user_id: currentUser.id, content: content, target_user_id: chatTarget }]);
+            input.value = '';
+            setTimeout(function() { loadMessages(); }, 500);
+        }
+        
+        // 定时刷新聊天（每3秒）
+        setInterval(function() {
+            var overlay = document.getElementById('chatOverlay');
+            if (overlay && overlay.classList.contains('active')) {
+                loadMessages();
+            }
+        }, 3000);
+
+        function handleChatKeypress(e) { if (e.key === 'Enter') sendMessage(); }
+
+        function showSuccess(msg) { var el = document.getElementById('successMessage'); el.textContent = msg; el.style.display = 'block'; setTimeout(function() { el.style.display = 'none'; }, 3000); }
+        function showError(msg) { var el = document.getElementById('errorMessage'); el.textContent = msg; el.style.display = 'block'; setTimeout(function() { el.style.display = 'none'; }, 3000); }
     </script>
 </body>
 </html>
