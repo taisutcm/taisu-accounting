@@ -60,7 +60,12 @@
         .success-message { background: #2ecc71; color: white; }
         .error-message { background: #e74c3c; color: white; }
         .category-list { background: #f9f9f9; border-radius: 10px; padding: 12px; max-height: 150px; overflow-y: auto; }
-        .category-item { padding: 8px; background: white; border-radius: 8px; margin-bottom: 5px; }
+        .category-item { padding: 8px; background: white; border-radius: 8px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+        .category-item .cat-name { flex: 1; }
+        .category-item .cat-delete { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer; margin-left: 10px; }
+        .company-item { padding: 10px; background: #f9f9f9; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .company-item .comp-name { flex: 1; font-weight: 600; }
+        .company-item .comp-delete { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; }
         
         /* 聊天弹窗 */
         .chat-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; }
@@ -303,6 +308,47 @@
                     }
                 });
             }
+            // 加载用户已加入的公司列表
+            loadUserCompanies();
+        }
+
+        // 加载用户已加入的公司列表
+        async function loadUserCompanies() {
+            if (!currentUser) return;
+            const { data: members } = await sb.from('company_members').select('company_id').eq('user_id', currentUser.id);
+            if (!members || members.length === 0) {
+                document.getElementById('companyList').innerHTML = '<p style="color:#999;font-size:14px;">暂未加入任何公司</p>';
+                return;
+            }
+            const companyIds = members.map(function(m) { return m.company_id; });
+            const { data: companies } = await sb.from('companies').select('*').in('id', companyIds);
+            const container = document.getElementById('companyList');
+            container.innerHTML = '';
+            if (companies) {
+                companies.forEach(function(c) {
+                    const isCurrent = currentCompany && currentCompany.id === c.id;
+                    const currentBadge = isCurrent ? ' <span style="color:#667eea;font-size:12px;">(当前)</span>' : '';
+                    container.innerHTML += '<div class="company-item"><span class="comp-name">' + c.name + currentBadge + '</span><button type="button" class="comp-delete" onclick="leaveCompany(\'' + c.id + '\', \'' + c.name + '\')">' + (isCurrent ? '退出' : '删除') + '</button></div>';
+                });
+            }
+        }
+
+        // 退出/删除公司
+        async function leaveCompany(companyId, companyName) {
+            if (!confirm('确定要' + (currentCompany && currentCompany.id === companyId ? '退出' : '删除') + '公司"' + companyName + '"吗?')) return;
+            // 删除成员关系
+            await sb.from('company_members').delete().eq('company_id', companyId).eq('user_id', currentUser.id);
+            // 如果是当前公司，清除本地存储
+            if (currentCompany && currentCompany.id === companyId) {
+                localStorage.removeItem('taisu_company');
+                currentCompany = null;
+                isOnline = false;
+                document.getElementById('currentCompany').textContent = '本地模式';
+                document.getElementById('onlineBtn').style.display = 'none';
+            }
+            showSuccess('已退出公司');
+            loadUserCompanies();
+            loadAllCompanies();
         }
 
         // 加入公司
@@ -427,6 +473,7 @@
                 if (error) { showError(error.message); return; }
                 await sb.from('company_members').insert([{ company_id: company.id, user_id: currentUser.id }]);
                 selectCompany(company);
+                loadUserCompanies(); // 刷新公司列表
             } catch (e) { showError('创建失败'); }
         }
 
@@ -541,8 +588,15 @@
         }
 
         function loadCategoryLists() {
-            document.getElementById('expenseCategories').innerHTML = categories.expense.map(function(c) { return '<div class="category-item">' + c + '</div>'; }).join('');
-            document.getElementById('incomeCategories').innerHTML = categories.income.map(function(c) { return '<div class="category-item">' + c + '</div>'; }).join('');
+            document.getElementById('expenseCategories').innerHTML = categories.expense.map(function(c) { return '<div class="category-item"><span class="cat-name">' + c + '</span><button type="button" class="cat-delete" onclick="deleteCategory(\'expense\', \'' + c + '\')">删除</button></div>'; }).join('');
+            document.getElementById('incomeCategories').innerHTML = categories.income.map(function(c) { return '<div class="category-item"><span class="cat-name">' + c + '</span><button type="button" class="cat-delete" onclick="deleteCategory(\'income\', \'' + c + '\')">删除</button></div>'; }).join('');
+        }
+
+        function deleteCategory(type, name) {
+            if (!confirm('确定删除分类"' + name + '"?')) return;
+            categories[type] = categories[type].filter(function(c) { return c !== name; });
+            localStorage.setItem('taisu_categories', JSON.stringify(categories));
+            updateCategories(); loadCategoryLists(); showSuccess('删除成功');
         }
 
         function addCustomCategory() {
